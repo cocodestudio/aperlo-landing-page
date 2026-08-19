@@ -135,7 +135,7 @@ export default function Hero() {
               marginBottom: 40,
             }}
           >
-            The screenshot tool for Android developers. Design once, export for App Store and Google Play — every required size, in one tap.
+            The screenshot tool for App developers. Design once, export for App Store and Google Play — every required size, in one tap.
           </motion.p>
 
           {/* CTA row */}
