@@ -2,21 +2,51 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://aperlo.app"),
-  title: "Aperlo — Screenshot it. Ship it.",
+  metadataBase: new URL("https://aperlo.cocodestudio.com"),
+  title: {
+    default: "Aperlo — Screenshot it. Ship it.",
+    template: "%s | Aperlo",
+  },
   description:
     "The Play Store screenshot maker for solo Android developers. Beautiful templates, precise editor, perfect exports.",
-  keywords: ["play store screenshots", "screenshot maker", "android app marketing", "indie developer tools", "flutter app"],
+  keywords: ["play store screenshots", "screenshot maker", "android app marketing", "indie developer tools", "flutter app", "ios screenshots", "app store screenshots", "app marketing"],
+  authors: [{ name: "CoCode Studio" }],
+  creator: "CoCode Studio",
+  publisher: "CoCode Studio",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     title: "Aperlo — Screenshot it. Ship it.",
-    description: "The premium App Store screenshot maker for solo developers and indie makers.",
+    description: "The Play Store & App Store screenshot maker for solo developers and indie makers.",
+    url: "https://aperlo.cocodestudio.com",
+    siteName: "Aperlo",
     type: "website",
-    images: ["/og-image.png"],
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Aperlo — Screenshot it. Ship it.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Aperlo — Screenshot it. Ship it.",
-    description: "The premium App Store screenshot maker for solo developers and indie makers.",
+    description: "The Play Store & App Store screenshot maker for solo developers and indie makers.",
+    images: ["/og-image.png"],
+  },
+  alternates: {
+    canonical: "https://aperlo.cocodestudio.com",
   },
 };
 
