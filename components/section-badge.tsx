@@ -14,7 +14,6 @@ export default function SectionBadge({
   tag,
   label,
   icon,
-  align = "center",
   className = "",
 }: SectionBadgeProps) {
   const displayText = tag || label || "";

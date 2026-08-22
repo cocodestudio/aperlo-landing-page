@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 // Helper to get formatted name from templateId
 function formatTemplateName(id: string): { name: string; category: string; desc: string; palette: string[] } {
@@ -64,20 +64,22 @@ export default function TemplateViewPage() {
   const info = formatTemplateName(templateId);
 
   const [copied, setCopied] = useState(false);
+  const [isMobile] = useState(() => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  });
   const [redirectAttempted, setRedirectAttempted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const mobileCheck = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    setIsMobile(mobileCheck);
-
-    const customSchemeUrl = `aperlo://template/${templateId}`;
-
-    if (mobileCheck) {
-      setRedirectAttempted(true);
-      window.location.href = customSchemeUrl;
+    if (isMobile) {
+      const timer = setTimeout(() => {
+        setRedirectAttempted(true);
+        const customSchemeUrl = `aperlo://template/${templateId}`;
+        window.location.href = customSchemeUrl;
+      }, 50);
+      return () => clearTimeout(timer);
     }
-  }, [templateId]);
+  }, [isMobile, templateId]);
 
   const copyShareLink = () => {
     if (typeof window !== "undefined") {

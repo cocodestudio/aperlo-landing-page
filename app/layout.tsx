@@ -51,6 +51,7 @@ export const metadata: Metadata = {
 };
 
 import StudioCursor from "@/components/studio-cursor";
+import LenisProvider from "@/components/lenis-provider";
 
 export default function RootLayout({
   children,
@@ -68,8 +69,10 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <StudioCursor />
-        {children}
+        <LenisProvider>
+          <StudioCursor />
+          {children}
+        </LenisProvider>
       </body>
     </html>
   );

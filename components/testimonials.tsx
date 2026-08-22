@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SectionBadge from "@/components/section-badge";
 
 const testimonials = [
   {
@@ -45,21 +46,49 @@ const testimonials = [
   },
 ];
 
-import SectionBadge from "@/components/section-badge";
-
 export default function Testimonials() {
   const [active, setActive] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Auto-play timer that smoothly cycles every 5.5 seconds unless hovered
+  useEffect(() => {
+    if (isPaused) return;
+
+    const timer = setInterval(() => {
+      setActive((prev) => (prev + 1) % testimonials.length);
+    }, 5500);
+
+    return () => clearInterval(timer);
+  }, [isPaused]);
+
+  const paginate = (dir: number) => {
+    setActive((p) => (p + dir + testimonials.length) % testimonials.length);
+  };
 
   return (
-    <section style={{ padding: "120px 0", background: "var(--bg)", overflow: "hidden" }}>
+    <section
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      style={{ padding: "100px 0", background: "var(--bg)", overflow: "hidden" }}
+    >
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 32 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ textAlign: "center", marginBottom: 64 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{ textAlign: "center", marginBottom: 52 }}
         >
           <SectionBadge
             tag="From devs who ship"
@@ -69,106 +98,143 @@ export default function Testimonials() {
               </svg>
             }
           />
-          <h2 style={{
-            fontFamily: "var(--font-syne)",
-            fontWeight: 800,
-            fontSize: "clamp(28px, 4vw, 48px)",
-            letterSpacing: -1,
-            color: "var(--ink-primary)",
-            lineHeight: 1.15,
-          }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-syne)",
+              fontWeight: 800,
+              fontSize: "clamp(28px, 4vw, 48px)",
+              letterSpacing: -1,
+              color: "var(--ink-primary)",
+              lineHeight: 1.15,
+            }}
+          >
             From devs who ship
           </h2>
         </motion.div>
 
-        {/* Main testimonial */}
-        <div style={{ maxWidth: 760, margin: "0 auto", position: "relative" }}>
+        {/* Main testimonial card */}
+        <div style={{ maxWidth: 740, margin: "0 auto", position: "relative", perspective: isMobile ? 0 : 1200 }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={active}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              // Adaptive animation: smooth 3D tilt on desktop, fluid horizontal glide on mobile
+              initial={
+                isMobile
+                  ? { opacity: 0, x: 20, scale: 0.98 }
+                  : { opacity: 0, y: 20, rotateY: 5 }
+              }
+              animate={
+                isMobile
+                  ? { opacity: 1, x: 0, scale: 1 }
+                  : { opacity: 1, y: 0, rotateY: 0 }
+              }
+              exit={
+                isMobile
+                  ? { opacity: 0, x: -20, scale: 0.98 }
+                  : { opacity: 0, y: -20, rotateY: -5 }
+              }
+              transition={{ duration: isMobile ? 0.35 : 0.45, ease: [0.16, 1, 0.3, 1] }}
+              drag={isMobile ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -40) paginate(1);
+                else if (info.offset.x > 40) paginate(-1);
+              }}
               style={{
                 background: "var(--surface)",
-                borderRadius: 20,
-                padding: "clamp(28px, 6vw, 52px)",
-                boxShadow: "0 16px 64px rgba(20,26,20,0.10)",
+                borderRadius: 22,
+                padding: "clamp(24px, 5vw, 52px)",
+                boxShadow: "0 16px 52px rgba(20,26,20,0.06)",
                 border: "1px solid var(--border-subtle)",
                 textAlign: "center",
-                marginBottom: 40,
+                marginBottom: 32,
                 position: "relative",
                 overflow: "hidden",
+                touchAction: isMobile ? "pan-y" : "auto",
               }}
             >
               {/* Accent blob */}
-              <div style={{
-                position: "absolute",
-                top: -40,
-                right: -40,
-                width: 160,
-                height: 160,
-                borderRadius: "50%",
-                background: `${testimonials[active].color}12`,
-                filter: "blur(40px)",
-                pointerEvents: "none",
-              }} />
+              <div
+                style={{
+                  position: "absolute",
+                  top: -40,
+                  right: -40,
+                  width: 160,
+                  height: 160,
+                  borderRadius: "50%",
+                  background: `${testimonials[active].color}12`,
+                  filter: "blur(40px)",
+                  pointerEvents: "none",
+                }}
+              />
 
               {/* Quote mark */}
-              <div style={{
-                fontFamily: "var(--font-syne)",
-                fontWeight: 800,
-                fontSize: 72,
-                color: "var(--accent)",
-                lineHeight: 0.6,
-                marginBottom: 32,
-                opacity: 0.25,
-                userSelect: "none",
-              }}>
-                "
+              <div
+                style={{
+                  fontFamily: "var(--font-syne)",
+                  fontWeight: 800,
+                  fontSize: isMobile ? 54 : 70,
+                  color: "var(--accent)",
+                  lineHeight: 0.5,
+                  marginBottom: isMobile ? 20 : 28,
+                  userSelect: "none",
+                  opacity: 0.25,
+                }}
+              >
+                &ldquo;
               </div>
 
               {/* Stars */}
-              <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 24 }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: 4, marginBottom: 20 }}>
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="var(--accent)">
+                  <svg
+                    key={i}
+                    width={isMobile ? "16" : "18"}
+                    height={isMobile ? "16" : "18"}
+                    viewBox="0 0 24 24"
+                    fill="var(--accent)"
+                  >
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
                 ))}
               </div>
 
-              <p style={{
-                fontFamily: "var(--font-dm)",
-                fontSize: 18,
-                lineHeight: 1.7,
-                color: "var(--ink-primary)",
-                fontWeight: 400,
-                marginBottom: 36,
-                fontStyle: "italic",
-              }}>
-                "{testimonials[active].quote}"
+              <p
+                style={{
+                  fontFamily: "var(--font-dm)",
+                  fontSize: isMobile ? 16 : 18,
+                  lineHeight: 1.65,
+                  color: "var(--ink-primary)",
+                  fontWeight: 400,
+                  marginBottom: 28,
+                  fontStyle: "italic",
+                }}
+              >
+                &ldquo;{testimonials[active].quote}&rdquo;
               </p>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "50%",
-                  background: testimonials[active].color,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: "50%",
+                    background: testimonials[active].color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
+                  }}
+                >
                   <span style={{ fontFamily: "var(--font-syne)", fontWeight: 700, fontSize: 14, color: "white" }}>
                     {testimonials[active].avatar}
                   </span>
                 </div>
                 <div style={{ textAlign: "left" }}>
-                  <p style={{ fontFamily: "var(--font-dm)", fontWeight: 600, fontSize: 15, color: "var(--ink-primary)" }}>
+                  <p style={{ fontFamily: "var(--font-dm)", fontWeight: 700, fontSize: 15, color: "var(--ink-primary)", margin: 0 }}>
                     {testimonials[active].name}
                   </p>
-                  <p style={{ fontFamily: "var(--font-dm)", fontSize: 13, color: "var(--ink-muted)" }}>
+                  <p style={{ fontFamily: "var(--font-dm)", fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>
                     {testimonials[active].role}
                   </p>
                 </div>
@@ -176,39 +242,51 @@ export default function Testimonials() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation dots */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 32 }}>
+          {/* Navigation dots (44px touch target) */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginBottom: 24 }}>
             {testimonials.map((_, i) => (
-              <motion.button
+              <button
                 key={i}
                 onClick={() => setActive(i)}
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
+                aria-label={`Go to testimonial ${i + 1}`}
                 style={{
-                  width: i === active ? 28 : 8,
-                  height: 8,
-                  borderRadius: 4,
-                  background: i === active ? "var(--accent)" : "var(--border-default)",
+                  minWidth: 32,
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
                   border: "none",
                   cursor: "pointer",
-                  transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
                   padding: 0,
                 }}
-              />
+              >
+                <span
+                  style={{
+                    display: "block",
+                    width: i === active ? 24 : 7,
+                    height: 7,
+                    borderRadius: 4,
+                    background: i === active ? "var(--accent)" : "var(--border-default)",
+                    transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                  }}
+                />
+              </button>
             ))}
           </div>
 
-          {/* Prev / Next */}
+          {/* Prev / Next Buttons */}
           <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
             {[
-              { dir: -1, label: "←" },
-              { dir: 1, label: "→" },
-            ].map(({ dir, label }) => (
+              { dir: -1, label: "←", aria: "Previous testimonial" },
+              { dir: 1, label: "→", aria: "Next testimonial" },
+            ].map(({ dir, label, aria }) => (
               <motion.button
                 key={dir}
-                onClick={() => setActive((p) => (p + dir + testimonials.length) % testimonials.length)}
-                whileHover={{ scale: 1.08, background: "var(--accent-tint)", borderColor: "var(--accent)" }}
-                whileTap={{ scale: 0.94 }}
+                onClick={() => paginate(dir)}
+                aria-label={aria}
+                whileTap={{ scale: 0.92 }}
+                whileHover={!isMobile ? { scale: 1.06, background: "var(--accent-tint)", borderColor: "var(--accent)" } : {}}
                 style={{
                   width: 44,
                   height: 44,
@@ -223,6 +301,7 @@ export default function Testimonials() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
                 }}
               >
                 {label}

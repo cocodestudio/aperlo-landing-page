@@ -1,6 +1,7 @@
 "use client";
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import SectionBadge from "@/components/section-badge";
 
 // Lucide-style inline SVG icons — no emoji
 function IconShapes() {
@@ -103,46 +104,6 @@ const features = [
     visual: <ExportVisual />,
   },
 ];
-
-function TemplateVisual() {
-  const cards = [
-    { bg: "linear-gradient(135deg, #1A3A5C, #1A6B4A)", label: "Minimal" },
-    { bg: "linear-gradient(135deg, #2A3D2E, #1A6B4A)", label: "Bold" },
-    { bg: "linear-gradient(135deg, #3A1A12, #A0660A)", label: "3D Mockup" },
-    { bg: "linear-gradient(135deg, #1A6B4A, #0E4830)", label: "Illustration" },
-    { bg: "linear-gradient(135deg, #1C2026, #2A3D2E)", label: "Dark" },
-    { bg: "linear-gradient(135deg, #F5F7F5, #DCE0DC)", label: "Light" },
-  ];
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: "100%", maxWidth: 320 }}>
-      {cards.map((card, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          viewport={{ once: true }}
-          whileHover={{ scale: 1.04, boxShadow: "0 12px 32px rgba(20,26,20,0.2)" }}
-          style={{
-            aspectRatio: "9/16",
-            background: card.bg,
-            borderRadius: 12,
-            boxShadow: "0 4px 16px rgba(20,26,20,0.12)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-end",
-            padding: 10,
-            cursor: "pointer",
-            border: i === 0 ? "2px solid var(--accent)" : "none",
-          }}
-        >
-          <span style={{ fontFamily: "var(--font-dm)", fontSize: 10, fontWeight: 600, color: i === 5 ? "var(--ink-secondary)" : "rgba(255,255,255,0.85)" }}>{card.label}</span>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
 
 function EditorVisual() {
   return (
@@ -780,22 +741,30 @@ const templateCards = [
   },
 ];
 
-import SectionBadge from "@/components/section-badge";
-
 export default function Features() {
   const first = features[0];
   const rest = features.slice(1);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   return (
-    <section id="features" style={{ padding: "120px 0", background: "var(--bg)" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+    <section id="features" style={{ padding: isMobile ? "70px 0" : "100px 0", background: "var(--bg)", overflow: "hidden" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
         {/* Section header */}
         <motion.div
-          initial={{ opacity: 0, y: 32 }}
+          initial={{ opacity: 0, y: isMobile ? 18 : 28 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ textAlign: "center", marginBottom: 96 }}
+          viewport={{ once: true, amount: isMobile ? 0.2 : 0.3 }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          style={{ textAlign: "center", marginBottom: isMobile ? 48 : 70 }}
         >
           <SectionBadge
             tag="What it does"
@@ -811,19 +780,19 @@ export default function Features() {
           <h2 style={{
             fontFamily: "var(--font-syne)",
             fontWeight: 800,
-            fontSize: "clamp(32px, 5vw, 56px)",
-            letterSpacing: -1.5,
+            fontSize: "clamp(28px, 4.5vw, 52px)",
+            letterSpacing: -1.2,
             color: "var(--ink-primary)",
             lineHeight: 1.1,
-            maxWidth: 520,
+            maxWidth: 560,
             margin: "0 auto 16px",
           }}>
             A specialist tool for serious makers
           </h2>
           <p style={{
             fontFamily: "var(--font-dm)",
-            fontSize: 16,
-            lineHeight: 1.65,
+            fontSize: isMobile ? 15 : 16,
+            lineHeight: 1.6,
             color: "var(--ink-secondary)",
             maxWidth: 480,
             margin: "0 auto",
@@ -831,107 +800,100 @@ export default function Features() {
             Not a dumbed-down Canva. Not an overbuilt design suite. Aperlo does one thing — makes your store screenshots exactly right.
           </p>
         </motion.div>
+      </div>
 
-        {/* ── Feature 01: full-width stacked layout with Rich Thematic Cards ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: 160 }}
-        >
-          {/* Text block — centred, immediately visible */}
-          <div style={{ textAlign: "center", marginBottom: 52 }}>
-            <div style={{ fontFamily: "var(--font-dm)", fontSize: 13, color: "var(--accent)", marginBottom: 14, letterSpacing: 1 }}>
-              {first.number}
-            </div>
-            <h3 style={{
-              fontFamily: "var(--font-syne)",
-              fontWeight: 700,
-              fontSize: "clamp(24px, 3vw, 36px)",
-              letterSpacing: -0.8,
-              color: "var(--ink-primary)",
-              lineHeight: 1.15,
-              marginBottom: 16,
-            }}>
-              {first.title}
-            </h3>
-            <p style={{
-              fontFamily: "var(--font-dm)",
-              fontSize: 16,
-              lineHeight: 1.65,
-              color: "var(--ink-secondary)",
-              maxWidth: 480,
-              margin: "0 auto 24px",
-            }}>
-              {first.body}
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-              {first.tags.map((tag) => (
-                <span key={tag} style={{
-                  fontFamily: "var(--font-dm)",
-                  fontSize: 12,
-                  color: "var(--ink-muted)",
-                  background: "var(--surface)",
-                  border: "1px solid var(--border-default)",
-                  borderRadius: 6,
-                  padding: "5px 10px",
-                }}>
-                  {tag}
-                </span>
-              ))}
+      {/* ── Feature 01: Responsive Template Grid ── */}
+      <div style={{ width: "100%", marginBottom: isMobile ? 80 : 120 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 14, marginBottom: 32 }}>
+            <div>
+              <div style={{ fontFamily: "var(--font-dm)", fontSize: 13, color: "var(--accent)", marginBottom: 6, letterSpacing: 1 }}>
+                {first.number}
+              </div>
+              <h3 style={{
+                fontFamily: "var(--font-syne)",
+                fontWeight: 700,
+                fontSize: "clamp(20px, 3vw, 34px)",
+                letterSpacing: -0.8,
+                color: "var(--ink-primary)",
+                lineHeight: 1.15,
+                marginBottom: 6,
+              }}>
+                {first.title}
+              </h3>
+              <p style={{
+                fontFamily: "var(--font-dm)",
+                fontSize: 14.5,
+                lineHeight: 1.55,
+                color: "var(--ink-secondary)",
+                maxWidth: 480,
+              }}>
+                {first.body}
+              </p>
             </div>
           </div>
 
-          {/* Template cards grid — 6 authentic, theme-accurate interactive mockups */}
-          <div className="template-grid">
+          {/* Responsive Template Grid: 3 columns on desktop, 2 on tablet, 1-2 on mobile */}
+          <div
+            className="templates-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
+              gap: isMobile ? 18 : 24,
+            }}
+          >
             {templateCards.map((card, i) => (
               <motion.div
                 key={card.id}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: isMobile ? 14 : 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -8, scale: 1.03, boxShadow: "0 20px 48px rgba(20,26,20,0.18)" }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ delay: (i % 3) * 0.08, duration: 0.45 }}
+                whileHover={!isMobile ? { y: -6, scale: 1.01, boxShadow: "0 20px 48px rgba(20,26,20,0.12)" } : {}}
+                whileTap={{ scale: 0.98 }}
                 style={{
-                  aspectRatio: "9/16",
+                  height: isMobile ? 400 : 440,
                   background: "var(--surface)",
-                  borderRadius: 16,
-                  boxShadow: "0 4px 20px rgba(20,26,20,0.08), inset 0 1px 0 rgba(255,255,255,0.2)",
-                  border: "1px solid rgba(20,26,20,0.08)",
+                  borderRadius: 18,
+                  boxShadow: "0 4px 20px rgba(20,26,20,0.05)",
+                  border: "1px solid var(--border-subtle)",
                   cursor: "pointer",
                   overflow: "hidden",
-                  transition: "box-shadow 0.3s ease",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "all 0.25s ease",
                 }}
               >
                 {card.render()}
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
+      </div>
 
-        {/* ── Features 02–04: alternating 2-column ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 160 }}>
+      {/* ── Features 02–04: responsive 2-column or single column with in-view triggers ── */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 70 : 120 }}>
           {rest.map((feat, idx) => (
             <div
               key={feat.number}
               className="feature-row"
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 80,
+                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                gap: isMobile ? 32 : 70,
                 alignItems: "center",
               }}
             >
               {/* Text */}
               <motion.div
-                initial={{ opacity: 0, x: idx % 2 === 0 ? -40 : 40 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                style={{ order: idx % 2 === 0 ? 1 : 2 }}
+                initial={{ opacity: 0, y: isMobile ? 18 : 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: isMobile ? 0.2 : 0.3 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                style={{ order: isMobile ? 1 : idx % 2 === 0 ? 1 : 2 }}
               >
-                <div style={{ fontFamily: "var(--font-dm)", fontSize: 13, color: "var(--accent)", marginBottom: 16, letterSpacing: 1 }}>
+                <div style={{ fontFamily: "var(--font-dm)", fontSize: 13, color: "var(--accent)", marginBottom: 12, letterSpacing: 1 }}>
                   {feat.number}
                 </div>
                 <h3 style={{
@@ -941,17 +903,17 @@ export default function Features() {
                   letterSpacing: -0.8,
                   color: "var(--ink-primary)",
                   lineHeight: 1.15,
-                  marginBottom: 20,
+                  marginBottom: 14,
                 }}>
                   {feat.title}
                 </h3>
                 <p style={{
                   fontFamily: "var(--font-dm)",
-                  fontSize: 16,
-                  lineHeight: 1.7,
+                  fontSize: isMobile ? 15 : 16,
+                  lineHeight: 1.65,
                   color: "var(--ink-secondary)",
-                  marginBottom: 28,
-                  maxWidth: 420,
+                  marginBottom: 20,
+                  maxWidth: 440,
                 }}>
                   {feat.body}
                 </p>
@@ -975,12 +937,12 @@ export default function Features() {
               {/* Visual */}
               <motion.div
                 className="feature-visual"
-                initial={{ opacity: 0, x: idx % 2 === 0 ? 40 : -40, y: 20 }}
-                whileInView={{ opacity: 1, x: 0, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                initial={{ opacity: 0, y: isMobile ? 18 : 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: isMobile ? 0.2 : 0.3 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: isMobile ? 0.04 : 0.08 }}
                 style={{
-                  order: idx % 2 === 0 ? 2 : 1,
+                  order: isMobile ? 2 : idx % 2 === 0 ? 2 : 1,
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",

@@ -1,5 +1,7 @@
 "use client";
-import { motion } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import SectionBadge from "@/components/section-badge";
 
 function IconGrid() {
   return (
@@ -49,27 +51,71 @@ function IconUnlock() {
   );
 }
 
-const stats = [
-  { value: "80+", label: "Templates included", icon: <IconGrid /> },
-  { value: "∞", label: "Screenshots per collection", icon: <IconFolder /> },
-  { value: "2", label: "Export formats (PNG, JPG)", icon: <IconDownload /> },
-  { value: "1", label: "Tap to export all sizes", icon: <IconZap /> },
-  { value: "50", label: "Undo history steps", icon: <IconRotateCcw /> },
-  { value: "$0", label: "Cost to get started", icon: <IconUnlock /> },
-];
+// Lightweight Counter component that interpolates values when visible in view
+function CounterItem({ target, prefix = "", suffix = "" }: { target: number; prefix?: string; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-import SectionBadge from "@/components/section-badge";
+  useEffect(() => {
+    if (!isInView) return;
+
+    const duration = 900;
+    const startTime = performance.now();
+
+    const update = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const current = Math.floor((progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress)) * target);
+      setCount(current);
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    };
+
+    requestAnimationFrame(update);
+  }, [isInView, target]);
+
+  return (
+    <span ref={ref}>
+      {prefix}
+      {count}
+      {suffix}
+    </span>
+  );
+}
 
 export default function StatsBar() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const stats = [
+    { icon: <IconGrid />, value: <CounterItem target={80} suffix="+" />, label: "Templates included" },
+    { icon: <IconFolder />, value: <motion.span animate={!isMobile ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>∞</motion.span>, label: "Screenshots per collection" },
+    { icon: <IconDownload />, value: <CounterItem target={2} />, label: "Export formats (PNG, JPG)" },
+    { icon: <IconZap />, value: <CounterItem target={1} />, label: "Tap to export all sizes" },
+    { icon: <IconRotateCcw />, value: <CounterItem target={50} />, label: "Undo history steps" },
+    { icon: <IconUnlock />, value: "$0", label: "Cost to get started" },
+  ];
+
   return (
-    <section style={{ background: "var(--surface)", borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)", padding: "64px 0" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+    <section style={{ background: "var(--surface)", borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)", padding: isMobile ? "48px 0" : "64px 0" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: isMobile ? 14 : 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          style={{ textAlign: "center", marginBottom: 44 }}
+          viewport={{ once: true, amount: isMobile ? 0.2 : 0.4 }}
+          transition={{ duration: 0.5 }}
+          style={{ textAlign: "center", marginBottom: isMobile ? 32 : 44 }}
         >
           <SectionBadge
             tag="By the numbers"
@@ -84,46 +130,31 @@ export default function StatsBar() {
         </motion.div>
 
         <div className="stats-grid">
-          {stats.map((s, i) => (
+          {stats.map((item, idx) => (
             <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 20 }}
+              key={idx}
+              initial={{ opacity: 0, y: isMobile ? 12 : 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ background: "var(--accent-tint)" }}
+              viewport={{ once: true, amount: isMobile ? 0.15 : 0.3 }}
+              transition={{ delay: isMobile ? 0.03 : idx * 0.05, duration: 0.45 }}
+              whileHover={!isMobile ? { background: "var(--accent-tint)" } : {}}
+              whileTap={{ scale: 0.98 }}
               style={{
                 background: "var(--surface)",
-                padding: "36px 28px",
+                padding: isMobile ? "24px 16px" : "36px 28px",
                 textAlign: "center",
                 transition: "background 0.3s",
                 cursor: "default",
               }}
             >
-              {/* Icon */}
-              <div style={{ display: "flex", justifyContent: "center", color: "var(--ink-muted)", marginBottom: 16, opacity: 0.6 }}>
-                {s.icon}
+              <div style={{ display: "flex", justifyContent: "center", color: "var(--ink-muted)", marginBottom: 12, opacity: 0.6 }}>
+                {item.icon}
               </div>
-              {/* Value */}
-              <div style={{
-                fontFamily: "var(--font-syne)",
-                fontWeight: 800,
-                fontSize: "clamp(32px, 4vw, 52px)",
-                color: "var(--accent)",
-                lineHeight: 1,
-                marginBottom: 8,
-                letterSpacing: -1,
-              }}>
-                {s.value}
+              <div style={{ fontFamily: "var(--font-syne)", fontWeight: 800, fontSize: "clamp(28px, 3.5vw, 52px)", color: "var(--accent)", lineHeight: 1, marginBottom: 6, letterSpacing: -1 }}>
+                {item.value}
               </div>
-              {/* Label */}
-              <div style={{
-                fontFamily: "var(--font-dm)",
-                fontSize: 13,
-                color: "var(--ink-secondary)",
-                fontWeight: 500,
-              }}>
-                {s.label}
+              <div style={{ fontFamily: "var(--font-dm)", fontSize: isMobile ? 12 : 13, color: "var(--ink-secondary)", fontWeight: 500 }}>
+                {item.label}
               </div>
             </motion.div>
           ))}
