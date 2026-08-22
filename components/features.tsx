@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import SectionBadge from "@/components/section-badge";
 
 // Lucide-style inline SVG icons — no emoji
@@ -745,6 +745,11 @@ export default function Features() {
   const first = features[0];
   const rest = features.slice(1);
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<{
+    id: string;
+    title: string;
+    render: () => React.ReactNode;
+  } | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -754,6 +759,20 @@ export default function Features() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedTemplate(null);
+    };
+    if (selectedTemplate) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedTemplate]);
 
   return (
     <section id="features" style={{ padding: isMobile ? "70px 0" : "100px 0", background: "var(--bg)", overflow: "hidden" }}>
@@ -851,6 +870,11 @@ export default function Features() {
                 transition={{ delay: (i % 3) * 0.08, duration: 0.45 }}
                 whileHover={!isMobile ? { y: -6, scale: 1.01, boxShadow: "0 20px 48px rgba(20,26,20,0.12)" } : {}}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedTemplate({
+                  id: card.id,
+                  title: card.id.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+                  render: card.render,
+                })}
                 style={{
                   height: isMobile ? 400 : 440,
                   background: "var(--surface)",
@@ -862,6 +886,7 @@ export default function Features() {
                   display: "flex",
                   flexDirection: "column",
                   transition: "all 0.25s ease",
+                  position: "relative",
                 }}
               >
                 {card.render()}
@@ -954,6 +979,181 @@ export default function Features() {
           ))}
         </div>
       </div>
+
+      {/* ── Interactive Lightbox Modal ── */}
+      <AnimatePresence>
+        {selectedTemplate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            onClick={() => setSelectedTemplate(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 999,
+              background: "rgba(20, 26, 20, 0.7)",
+              backdropFilter: "blur(10px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.92, y: 16, opacity: 0 }}
+              transition={{ type: "spring", damping: 26, stiffness: 320 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "var(--surface)",
+                borderRadius: 22,
+                boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
+                border: "1px solid var(--border-subtle)",
+                maxWidth: 660,
+                width: "100%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                padding: "clamp(20px, 4vw, 32px)",
+                position: "relative",
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                gap: 24,
+                alignItems: "center",
+              }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedTemplate(null)}
+                aria-label="Close template preview"
+                style={{
+                  position: "absolute",
+                  top: 14,
+                  right: 14,
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  border: "1px solid var(--border-subtle)",
+                  background: "var(--bg)",
+                  color: "var(--ink-primary)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 18,
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+
+              {/* Template Preview Card */}
+              <div
+                style={{
+                  width: isMobile ? 210 : 240,
+                  height: isMobile ? 370 : 420,
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  boxShadow: "0 8px 28px rgba(20,26,20,0.1)",
+                  border: "1px solid var(--border-subtle)",
+                  flexShrink: 0,
+                }}
+              >
+                {selectedTemplate.render()}
+              </div>
+
+              {/* Template Details */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1, textAlign: isMobile ? "center" : "left" }}>
+                <div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent-tint)", padding: "4px 12px", borderRadius: 99, marginBottom: 8 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)" }} />
+                    <span style={{ fontFamily: "var(--font-dm)", fontSize: 11.5, fontWeight: 600, color: "var(--accent)" }}>
+                      Curated Preset
+                    </span>
+                  </div>
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-syne)",
+                      fontWeight: 800,
+                      fontSize: "clamp(20px, 3vw, 26px)",
+                      letterSpacing: -0.6,
+                      color: "var(--ink-primary)",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {selectedTemplate.title}
+                  </h3>
+                  <p style={{ fontFamily: "var(--font-dm)", fontSize: 13.5, lineHeight: 1.5, color: "var(--ink-secondary)", margin: 0 }}>
+                    Pixel-perfect dimensions for Phone, 7&quot; Tablet, 10&quot; Tablet, iPhone 6.9&quot;, and iPad 13&quot;.
+                  </p>
+                </div>
+
+                <div style={{ background: "var(--bg)", borderRadius: 12, padding: "12px 14px", border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ fontFamily: "var(--font-dm)", fontSize: 11.5, fontWeight: 600, color: "var(--ink-muted)", marginBottom: 6 }}>
+                    Supported Resolutions
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: isMobile ? "center" : "flex-start" }}>
+                    {["1080×1920", "1200×1920", "1600×2560", "1320×2868", "2064×2752"].map((res) => (
+                      <span
+                        key={res}
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 10.5,
+                          background: "var(--surface)",
+                          border: "1px solid var(--border-default)",
+                          padding: "2px 7px",
+                          borderRadius: 4,
+                          color: "var(--ink-primary)",
+                        }}
+                      >
+                        {res}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                  <a
+                    href="#download"
+                    onClick={() => setSelectedTemplate(null)}
+                    style={{
+                      background: "var(--accent)",
+                      color: "white",
+                      fontFamily: "var(--font-dm)",
+                      fontWeight: 600,
+                      fontSize: 13.5,
+                      padding: "11px 18px",
+                      borderRadius: 10,
+                      textAlign: "center",
+                      textDecoration: "none",
+                      boxShadow: "0 3px 12px rgba(26,107,74,0.25)",
+                    }}
+                  >
+                    Edit in Aperlo App
+                  </a>
+                  <button
+                    onClick={() => setSelectedTemplate(null)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      fontFamily: "var(--font-dm)",
+                      fontWeight: 500,
+                      fontSize: 13,
+                      color: "var(--ink-muted)",
+                      cursor: "pointer",
+                      padding: "4px",
+                    }}
+                  >
+                    Back to Gallery
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

@@ -11,7 +11,7 @@ export default function Nav() {
     const onScroll = () => {
       const scrollY = window.scrollY;
       setScrolled(scrollY > 40);
-      setShowDownload(scrollY > 450);
+      setShowDownload(scrollY > 400);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -29,18 +29,18 @@ export default function Nav() {
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "0 24px",
+        padding: "0 clamp(16px, 3vw, 28px)",
         height: 64,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        background: scrolled ? "rgba(245,247,245,0.88)" : "transparent",
+        background: scrolled ? "rgba(245,247,245,0.92)" : "transparent",
         backdropFilter: scrolled ? "blur(20px)" : "none",
         borderBottom: scrolled ? "1px solid var(--border-subtle)" : "1px solid transparent",
-        transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
+        transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
       }}
     >
-      {/* Logo — uses real app icon */}
+      {/* Logo */}
       <a href="#" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
         <Image
           src="/app_icon.png"
@@ -61,12 +61,12 @@ export default function Nav() {
         </span>
       </a>
 
-      {/* Desktop links — no Pricing */}
-      <div className="nav-links" style={{ gap: 32, alignItems: "center" }}>
-        {["Features", "Templates"].map((item) => (
+      {/* Desktop links */}
+      <div className="nav-links" style={{ gap: 28, alignItems: "center" }}>
+        {["Features", "How It Works"].map((item) => (
           <a
             key={item}
-            href={`#${item.toLowerCase()}`}
+            href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
             style={{
               fontFamily: "var(--font-dm)",
               fontWeight: 500,
@@ -83,35 +83,38 @@ export default function Nav() {
         ))}
       </div>
 
-      {/* CTA — only appears when user scrolls past the hero section */}
-      <div style={{ minWidth: 130, display: "flex", justifyContent: "flex-end" }}>
+      {/* CTA — appears on both desktop & mobile when user scrolls past hero */}
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <AnimatePresence>
           {showDownload && (
             <motion.a
               href="#download"
               className="nav-cta"
-              initial={{ opacity: 0, scale: 0.85, y: -6 }}
+              initial={{ opacity: 0, scale: 0.88, y: -4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.85, y: -6 }}
+              exit={{ opacity: 0, scale: 0.88, y: -4 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.96 }}
               style={{
                 fontFamily: "var(--font-dm)",
                 fontWeight: 600,
-                fontSize: 14,
+                fontSize: 13.5,
                 color: "white",
                 background: "var(--accent)",
-                padding: "10px 20px",
+                padding: "8px 18px",
                 borderRadius: 10,
                 textDecoration: "none",
-                transition: "background 0.2s",
-                display: "inline-block",
+                transition: "background 0.2s, box-shadow 0.2s",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 2px 10px rgba(26,107,74,0.25)",
               }}
               onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--accent-hover)")}
               onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--accent)")}
             >
-              Download now
+              Get on Play
             </motion.a>
           )}
         </AnimatePresence>
